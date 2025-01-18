@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Pulsating Dots: Lifespan Display</title>
+    <title>Year-Month Heartbeat Lifespan</title>
     <style>
-        /* Basic resets */
+        /* Basic resets & body styling */
         html, body {
             margin: 0;
             padding: 0;
@@ -13,48 +13,69 @@
             color: #fff;
         }
 
-        /* Center the heading and text */
         h1, p {
             text-align: center;
             margin: 0;
             padding: 10px 0;
         }
 
-        /* Container for the entire grid (10 columns) */
-        .container {
-            display: grid;
-            grid-template-columns: repeat(10, auto);
-            /* you can tweak gap as needed */
-            gap: 40px;
-            justify-content: center;
-            align-items: start;
-            padding: 20px;
-            box-sizing: border-box;
-            max-width: 1000px;
-            margin: 0 auto; /* center the grid horizontally in the page */
-        }
-
-        /* Each "box" contains the dot and its year label */
-        .year-box {
+        /* Container for the input and button */
+        .input-container {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
+            gap: 10px;
+            padding: 10px 0;
         }
 
-        /* Dot styling */
+        /* Main container for all year rows */
+        .years-container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        /* Each row is one year: left label, 12 month-dots, right label */
+        .year-row {
+            display: flex;
+            align-items: center;
+            margin: 8px 0;
+        }
+
+        /* Year labels at the start/end of each row */
+        .year-label {
+            width: 50px;
+            text-align: right;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .year-label-end {
+            width: 50px;
+            text-align: left;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        /* Container for the 12 dots in the middle */
+        .month-dots {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Common styling for each dot */
         .dot {
-            width: 24px;
-            height: 24px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            margin-bottom: 8px; /* space between dot and year text */
         }
 
-        /* Past year: dim */
+        /* Past (dim) vs. current/future (heartbeat glow) */
         .dim {
             background-color: #333;
         }
-
-        /* Future/current year: glowing heartbeat */
         .glow {
             background-color: #00aeff;
             box-shadow:
@@ -109,60 +130,107 @@
                         0 0 20px #00aeff;
             }
         }
-
-        /* Style for the year label under each dot */
-        .year-label {
-            font-size: 0.9rem;
-            color: #fff;
-        }
     </style>
 </head>
 <body>
 
-<h1>Pulsating Dots: Lifespan Display</h1>
+<h1>Year-Month Heartbeat Lifespan</h1>
 <p>Past years are dim; current &amp; future years pulse like a heartbeat.</p>
 
-<div class="container" id="dotsContainer"></div>
+<!-- Birth date input and "Generate" button -->
+<div class="input-container">
+    <label for="birthDate">Enter your birth date:</label>
+    <input type="date" id="birthDate" />
+    <button id="generateBtn">Generate</button>
+</div>
+
+<div class="years-container" id="yearsContainer">
+    <!-- Dynamically generated year rows will go here -->
+</div>
 
 <script>
-    // Define birth year and expected end year
-    const birthYear = 1985;
-    const endYear   = 2075;
+    // You can change the end year as needed
+    const END_YEAR = 2075;
+    // We'll determine "past" vs. "future" based on the current date
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0 for January, 11 for December
 
-    // Current year from user's system
-    const currentYear = new Date().getFullYear();
+    const birthDateInput = document.getElementById('birthDate');
+    const generateBtn = document.getElementById('generateBtn');
+    const yearsContainer = document.getElementById('yearsContainer');
 
-    const container = document.getElementById('dotsContainer');
+    generateBtn.addEventListener('click', () => {
+        // Clear any old results
+        yearsContainer.innerHTML = '';
 
-    // Create one "box" for each year
-    for (let year = birthYear; year <= endYear; year++) {
-        // The wrapper for the dot + label
-        const yearBox = document.createElement('div');
-        yearBox.classList.add('year-box');
-
-        // The dot itself
-        const dot = document.createElement('div');
-        dot.classList.add('dot');
-
-        // Determine if the year is past (dim) or current/future (glow)
-        if (year < currentYear) {
-            dot.classList.add('dim');
-        } else {
-            dot.classList.add('glow');
+        // Get the selected birth date
+        const birthDateValue = birthDateInput.value;
+        if (!birthDateValue) {
+            alert('Please choose a valid birth date first.');
+            return;
         }
 
-        // Create the year label
-        const label = document.createElement('div');
-        label.classList.add('year-label');
-        label.textContent = year;
+        const birthDate = new Date(birthDateValue);
+        const birthYear = birthDate.getFullYear();
 
-        // Append dot and label into the year box
-        yearBox.appendChild(dot);
-        yearBox.appendChild(label);
+        // Generate from birthYear to END_YEAR
+        for (let year = birthYear; year <= END_YEAR; year++) {
+            // Create row container
+            const row = document.createElement('div');
+            row.classList.add('year-row');
 
-        // Append the year box into the container
-        container.appendChild(yearBox);
-    }
+            // Create the left year label
+            const leftLabel = document.createElement('div');
+            leftLabel.classList.add('year-label');
+            leftLabel.textContent = year;
+
+            // Container for the 12 monthly dots
+            const monthDotsContainer = document.createElement('div');
+            monthDotsContainer.classList.add('month-dots');
+
+            // Check if this year is completely in the past or not
+            // (Simple approach: if year < currentYear => all months are past)
+            const isPastYear = (year < currentYear);
+            const isCurrentYear = (year === currentYear);
+
+            // Create 12 dots for the months
+            for (let m = 0; m < 12; m++) {
+                const dot = document.createElement('div');
+                dot.classList.add('dot');
+
+                if (isPastYear) {
+                    // Entire year is before the current year => dim
+                    dot.classList.add('dim');
+                } else if (isCurrentYear) {
+                    // For the current year, check the month
+                    // If month is before the current month, it's past
+                    if (m < currentMonth) {
+                        dot.classList.add('dim');
+                    } else {
+                        dot.classList.add('glow');
+                    }
+                } else {
+                    // Future year => glow
+                    dot.classList.add('glow');
+                }
+
+                monthDotsContainer.appendChild(dot);
+            }
+
+            // Create the right year label
+            const rightLabel = document.createElement('div');
+            rightLabel.classList.add('year-label-end');
+            rightLabel.textContent = year;
+
+            // Put them all together
+            row.appendChild(leftLabel);
+            row.appendChild(monthDotsContainer);
+            row.appendChild(rightLabel);
+
+            yearsContainer.appendChild(row);
+        }
+    });
 </script>
 
 </body>
