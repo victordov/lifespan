@@ -38,34 +38,27 @@
 
         /* Each row is one year: left label, 12 month-dots, right label */
         .year-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto 1fr auto; /* auto widths for labels, 1fr for dots */
             align-items: center;
-            margin: 4px 0; /* reduced row spacing */
+            margin: 2px 0;       /* Reduced vertical spacing */
+            gap: 2px;           /* Tighter gap between labels & dots */
         }
 
         /* Year labels at the start/end of each row */
-        .year-label {
-            width: 35px;        /* reduced from 50px */
-            text-align: right;
-            margin-right: 5px;  /* reduced from 10px */
+        .year-label, .year-label-end {
             font-weight: bold;
-        }
-        .year-label-end {
-            width: 35px;        /* reduced from 50px */
-            text-align: left;
-            margin-left: 5px;   /* reduced from 10px */
-            font-weight: bold;
+            padding: 0 2px;     /* Reduced horizontal padding for closeness */
         }
 
         /* Container for the 12 monthly dots */
         .month-dots {
             display: flex;
-            flex: 1;
             justify-content: center;
-            gap: 5px;  /* reduced gap */
+            gap: 2px;  /* Reduced gap between dots */
         }
 
-        /* Common styling for each dot (smaller size) */
+        /* Common styling for each dot (small size) */
         .dot {
             width: 14px;
             height: 14px;
@@ -78,7 +71,6 @@
         }
         .glow {
             background-color: #00aeff;
-            /* smaller glow box-shadow */
             box-shadow:
                     0 0 3px #00aeff,
                     0 0 6px #00aeff,
@@ -159,14 +151,23 @@
     const generateBtn = document.getElementById('generateBtn');
     const yearsContainer = document.getElementById('yearsContainer');
 
-    generateBtn.addEventListener('click', () => {
+    // Utility: Update the URL query param without reloading
+    function updateQueryParameter(key, value) {
+        const url = new URL(window.location);
+        if (value) {
+            url.searchParams.set(key, value);
+        } else {
+            url.searchParams.delete(key);
+        }
+        window.history.replaceState({}, '', url.toString());
+    }
+
+    // Generate the lifespan grid
+    function generateGrid(birthDateValue) {
         // Clear any old results
         yearsContainer.innerHTML = '';
 
-        // Get the selected birth date
-        const birthDateValue = birthDateInput.value;
         if (!birthDateValue) {
-            alert('Please choose a valid birth date first.');
             return;
         }
 
@@ -176,7 +177,6 @@
         // Calculate the end year by adding 85 years to the birth year
         const END_YEAR = birthYear + 85;
 
-        // Generate from birthYear to END_YEAR
         for (let year = birthYear; year <= END_YEAR; year++) {
             // Create row container
             const row = document.createElement('div');
@@ -195,9 +195,8 @@
             const monthDotsContainer = document.createElement('div');
             monthDotsContainer.classList.add('month-dots');
 
-            // Simple logic:
             // - If year < currentYear => all 12 dots are dim
-            // - If year == currentYear => month-by-month check
+            // - If year === currentYear => month-by-month check
             // - If year > currentYear => all 12 dots glow
             const isPastYear = (year < currentYear);
             const isCurrentYear = (year === currentYear);
@@ -209,7 +208,6 @@
                 if (isPastYear) {
                     dot.classList.add('dim');
                 } else if (isCurrentYear) {
-                    // Check if this month is past or current/future
                     if (m < currentMonth) {
                         // Past months in current year
                         dot.classList.add('dim');
@@ -241,7 +239,32 @@
         if (currentYearRow) {
             currentYearRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+    }
+
+    // On change of the birth date, update the query param
+    birthDateInput.addEventListener('change', () => {
+        updateQueryParameter('birthDate', birthDateInput.value);
     });
+
+    // On button click, generate the grid
+    generateBtn.addEventListener('click', () => {
+        const birthDateValue = birthDateInput.value;
+        if (!birthDateValue) {
+            alert('Please choose a valid birth date first.');
+            return;
+        }
+        generateGrid(birthDateValue);
+    });
+
+    // On page load, check if birthDate is in the URL; if so, generate automatically
+    (function initFromURL() {
+        const url = new URL(window.location);
+        const birthDateParam = url.searchParams.get('birthDate');
+        if (birthDateParam) {
+            birthDateInput.value = birthDateParam;
+            generateGrid(birthDateParam);
+        }
+    })();
 </script>
 
 </body>
