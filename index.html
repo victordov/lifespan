@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Lifespan Heartbeat Dots</title>
+    <title>Pulsating Dots: Lifespan Display</title>
     <style>
         /* Basic resets */
         html, body {
@@ -13,32 +13,48 @@
             color: #fff;
         }
 
-        /* Container for the dots, 10 dots per row using CSS Grid */
-        .container {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr); /* 10 columns */
-            gap: 20px; /* space between dots */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh; /* full-screen height */
-            padding: 20px;
-            box-sizing: border-box;
+        /* Center the heading and text */
+        h1, p {
+            text-align: center;
+            margin: 0;
+            padding: 10px 0;
         }
 
-        /* Common dot styling */
+        /* Container for the entire grid (10 columns) */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(10, auto);
+            /* you can tweak gap as needed */
+            gap: 40px;
+            justify-content: center;
+            align-items: start;
+            padding: 20px;
+            box-sizing: border-box;
+            max-width: 1000px;
+            margin: 0 auto; /* center the grid horizontally in the page */
+        }
+
+        /* Each "box" contains the dot and its year label */
+        .year-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Dot styling */
         .dot {
             width: 24px;
             height: 24px;
-            margin: 0 auto;       /* center each dot in its grid cell */
             border-radius: 50%;
+            margin-bottom: 8px; /* space between dot and year text */
         }
 
-        /* Dim (past years) */
+        /* Past year: dim */
         .dim {
             background-color: #333;
         }
 
-        /* Glowing, heartbeat (current & future years) */
+        /* Future/current year: glowing heartbeat */
         .glow {
             background-color: #00aeff;
             box-shadow:
@@ -48,7 +64,7 @@
             animation: heartbeat 1.5s ease-in-out infinite;
         }
 
-        /* Heartbeat pulsation keyframes */
+        /* Heartbeat keyframes */
         @keyframes heartbeat {
             0% {
                 transform: scale(1);
@@ -94,50 +110,58 @@
             }
         }
 
-        /* Optional informational text at the top */
-        .info {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 1rem;
-            color: #00aeff;
-            pointer-events: none; /* let clicks pass through if desired */
+        /* Style for the year label under each dot */
+        .year-label {
+            font-size: 0.9rem;
+            color: #fff;
         }
     </style>
 </head>
 <body>
 
-<div class="info">
-    Each dot represents a year from 1985 to 2075.<br>
-    Past years are dim; current &amp; future years pulse like a heartbeat.
-</div>
+<h1>Pulsating Dots: Lifespan Display</h1>
+<p>Past years are dim; current &amp; future years pulse like a heartbeat.</p>
 
 <div class="container" id="dotsContainer"></div>
 
 <script>
-    // Birth and expected end year
+    // Define birth year and expected end year
     const birthYear = 1985;
     const endYear   = 2075;
 
-    // Determine current year from system
+    // Current year from user's system
     const currentYear = new Date().getFullYear();
 
     const container = document.getElementById('dotsContainer');
 
-    // Create one dot per year
+    // Create one "box" for each year
     for (let year = birthYear; year <= endYear; year++) {
+        // The wrapper for the dot + label
+        const yearBox = document.createElement('div');
+        yearBox.classList.add('year-box');
+
+        // The dot itself
         const dot = document.createElement('div');
         dot.classList.add('dot');
 
-        // If the year is in the past, make it dim; else apply the glow
+        // Determine if the year is past (dim) or current/future (glow)
         if (year < currentYear) {
             dot.classList.add('dim');
         } else {
             dot.classList.add('glow');
         }
 
-        container.appendChild(dot);
+        // Create the year label
+        const label = document.createElement('div');
+        label.classList.add('year-label');
+        label.textContent = year;
+
+        // Append dot and label into the year box
+        yearBox.appendChild(dot);
+        yearBox.appendChild(label);
+
+        // Append the year box into the container
+        container.appendChild(yearBox);
     }
 </script>
 
