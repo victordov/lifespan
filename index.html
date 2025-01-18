@@ -40,35 +40,35 @@
         .year-row {
             display: flex;
             align-items: center;
-            margin: 8px 0;
+            margin: 4px 0; /* reduced row spacing */
         }
 
         /* Year labels at the start/end of each row */
         .year-label {
-            width: 50px;
+            width: 35px;        /* reduced from 50px */
             text-align: right;
-            margin-right: 10px;
+            margin-right: 5px;  /* reduced from 10px */
             font-weight: bold;
         }
         .year-label-end {
-            width: 50px;
+            width: 35px;        /* reduced from 50px */
             text-align: left;
-            margin-left: 10px;
+            margin-left: 5px;   /* reduced from 10px */
             font-weight: bold;
         }
 
-        /* Container for the 12 dots in the middle */
+        /* Container for the 12 monthly dots */
         .month-dots {
             display: flex;
             flex: 1;
             justify-content: center;
-            gap: 10px;
+            gap: 5px;  /* reduced gap */
         }
 
-        /* Common styling for each dot */
+        /* Common styling for each dot (smaller size) */
         .dot {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
         }
 
@@ -78,56 +78,57 @@
         }
         .glow {
             background-color: #00aeff;
+            /* smaller glow box-shadow */
             box-shadow:
-                    0 0 5px #00aeff,
-                    0 0 10px #00aeff,
-                    0 0 20px #00aeff;
+                    0 0 3px #00aeff,
+                    0 0 6px #00aeff,
+                    0 0 10px #00aeff;
             animation: heartbeat 1.5s ease-in-out infinite;
         }
 
-        /* Heartbeat keyframes */
+        /* Heartbeat keyframes with smaller scale */
         @keyframes heartbeat {
             0% {
                 transform: scale(1);
                 box-shadow:
-                        0 0 5px #00aeff,
-                        0 0 10px #00aeff,
-                        0 0 20px #00aeff;
+                        0 0 3px #00aeff,
+                        0 0 6px #00aeff,
+                        0 0 10px #00aeff;
             }
             14% {
-                transform: scale(1.3);
+                transform: scale(1.1);
                 box-shadow:
+                        0 0 4px #00aeff,
                         0 0 8px #00aeff,
-                        0 0 16px #00aeff,
-                        0 0 24px #00aeff;
+                        0 0 12px #00aeff;
             }
             28% {
                 transform: scale(1);
                 box-shadow:
-                        0 0 5px #00aeff,
-                        0 0 10px #00aeff,
-                        0 0 20px #00aeff;
+                        0 0 3px #00aeff,
+                        0 0 6px #00aeff,
+                        0 0 10px #00aeff;
             }
             42% {
-                transform: scale(1.3);
+                transform: scale(1.1);
                 box-shadow:
+                        0 0 4px #00aeff,
                         0 0 8px #00aeff,
-                        0 0 16px #00aeff,
-                        0 0 24px #00aeff;
+                        0 0 12px #00aeff;
             }
             70% {
                 transform: scale(1);
                 box-shadow:
-                        0 0 5px #00aeff,
-                        0 0 10px #00aeff,
-                        0 0 20px #00aeff;
+                        0 0 3px #00aeff,
+                        0 0 6px #00aeff,
+                        0 0 10px #00aeff;
             }
             100% {
                 transform: scale(1);
                 box-shadow:
-                        0 0 5px #00aeff,
-                        0 0 10px #00aeff,
-                        0 0 20px #00aeff;
+                        0 0 3px #00aeff,
+                        0 0 6px #00aeff,
+                        0 0 10px #00aeff;
             }
         }
     </style>
@@ -149,12 +150,12 @@
 </div>
 
 <script>
-    // You can change the end year as needed
+    // End year for the lifespan (change as needed)
     const END_YEAR = 2075;
-    // We'll determine "past" vs. "future" based on the current date
+    // Today's date
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth(); // 0 for January, 11 for December
+    const currentMonth = now.getMonth(); // 0 = January, 11 = December
 
     const birthDateInput = document.getElementById('birthDate');
     const generateBtn = document.getElementById('generateBtn');
@@ -179,6 +180,10 @@
             // Create row container
             const row = document.createElement('div');
             row.classList.add('year-row');
+            // If this is the current year, mark it for scrolling
+            if (year === currentYear) {
+                row.classList.add('current-year');
+            }
 
             // Create the left year label
             const leftLabel = document.createElement('div');
@@ -189,32 +194,31 @@
             const monthDotsContainer = document.createElement('div');
             monthDotsContainer.classList.add('month-dots');
 
-            // Check if this year is completely in the past or not
-            // (Simple approach: if year < currentYear => all months are past)
+            // Simple logic:
+            // - If year < currentYear => all 12 dots are dim
+            // - If year == currentYear => month-by-month check
+            // - If year > currentYear => all 12 dots glow
             const isPastYear = (year < currentYear);
             const isCurrentYear = (year === currentYear);
 
-            // Create 12 dots for the months
             for (let m = 0; m < 12; m++) {
                 const dot = document.createElement('div');
                 dot.classList.add('dot');
 
                 if (isPastYear) {
-                    // Entire year is before the current year => dim
                     dot.classList.add('dim');
                 } else if (isCurrentYear) {
-                    // For the current year, check the month
-                    // If month is before the current month, it's past
+                    // Check if this month is past or current/future
                     if (m < currentMonth) {
+                        // Past months in current year
                         dot.classList.add('dim');
                     } else {
+                        // Current/future months in current year
                         dot.classList.add('glow');
                     }
                 } else {
-                    // Future year => glow
                     dot.classList.add('glow');
                 }
-
                 monthDotsContainer.appendChild(dot);
             }
 
@@ -229,6 +233,12 @@
             row.appendChild(rightLabel);
 
             yearsContainer.appendChild(row);
+        }
+
+        // After generating, scroll to the current-year row (if it exists)
+        const currentYearRow = document.querySelector('.year-row.current-year');
+        if (currentYearRow) {
+            currentYearRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     });
 </script>
