@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Lifespan Dots</title>
+    <style>
+        /* Make the background black and remove default body margin */
+        body {
+            background-color: black;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Container for the dots */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Common styling for the dots */
+        .dot {
+            width: 20px;
+            height: 20px;
+            margin: 8px;
+            border-radius: 50%;
+        }
+
+        /* Glowing/pulsating effect for "future/current" years */
+        .glow {
+            background-color: #00aeff;
+            box-shadow:
+                    0 0 5px #00aeff,
+                    0 0 10px #00aeff,
+                    0 0 20px #00aeff;
+            animation: pulsate 2s infinite;
+        }
+
+        /* Dim effect for "past" years */
+        .dim {
+            background-color: #333;
+        }
+
+        /* Keyframes to create the pulsating effect */
+        @keyframes pulsate {
+            0% {
+                transform: scale(1);
+                box-shadow:
+                        0 0 5px #00aeff,
+                        0 0 10px #00aeff,
+                        0 0 20px #00aeff;
+            }
+            50% {
+                transform: scale(1.3);
+                box-shadow:
+                        0 0 8px #00aeff,
+                        0 0 16px #00aeff,
+                        0 0 24px #00aeff;
+            }
+            100% {
+                transform: scale(1);
+                box-shadow:
+                        0 0 5px #00aeff,
+                        0 0 10px #00aeff,
+                        0 0 20px #00aeff;
+            }
+        }
+
+        /* Optional: some text styling if you want to label or add instructions */
+        .info {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: #00aeff;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Optional informational text at the top -->
+<div class="info">
+    Dots from 1985 to 2075<br />
+    Dim dots: years passed<br />
+    Glowing dots: current and future years
+</div>
+
+<!-- Container for our dots -->
+<div class="container" id="dotsContainer"></div>
+
+<script>
+    // Data for birth year and expected lifespan end
+    const birthYear = 1985;
+    const deathYear = 2075;
+
+    // Current year from the user's system
+    const currentYear = new Date().getFullYear();
+
+    // Reference to the container where we'll place the dots
+    const container = document.getElementById("dotsContainer");
+
+    // Generate one dot per year from birth to expected death
+    for (let year = birthYear; year <= deathYear; year++) {
+        const dot = document.createElement("div");
+        dot.classList.add("dot");
+
+        // If the year is strictly less than the current year, it's in the past -> dim
+        // Else, it is the current or a future year -> glow
+        if (year < currentYear) {
+            dot.classList.add("dim");
+        } else {
+            dot.classList.add("glow");
+        }
+
+        container.appendChild(dot);
+    }
+</script>
+</body>
+</html>
