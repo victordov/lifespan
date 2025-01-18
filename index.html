@@ -28,6 +28,31 @@
             padding: 10px 0;
         }
 
+        /* Progress info container (passed/remaining + color bar) */
+        .progress-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-bottom: 20px; /* spacing below the bar */
+        }
+        .progress-passed, .progress-remaining {
+            flex-shrink: 0;
+            font-weight: bold;
+            font-size: 0.95rem;
+            min-width: 90px; /* just to keep a bit of space for text */
+            text-align: center;
+        }
+        .progress-line {
+            flex: 1; /* expand to fill space between passed & remaining text */
+            height: 8px;
+            border-radius: 4px;
+            margin: 0 10px;
+            background: #333; /* default color - will be overridden with gradient */
+        }
+
         /* Main container for all year rows */
         .years-container {
             width: 90%;
@@ -36,19 +61,20 @@
             padding: 20px 0;
         }
 
-        /* Each row is one year: left label, 12 month-dots, right label */
+        /* Each row is one year: left label, 12 month-dots, right label
+           Using a 3-column grid to keep labels close to the dots */
         .year-row {
             display: grid;
             grid-template-columns: auto 1fr auto; /* auto widths for labels, 1fr for dots */
             align-items: center;
-            margin: 2px 0;       /* Reduced vertical spacing */
-            gap: 2px;           /* Tighter gap between labels & dots */
+            margin: 2px 0;     /* Reduced vertical spacing */
+            gap: 2px;          /* Tighter gap between labels & dots */
         }
 
         /* Year labels at the start/end of each row */
         .year-label, .year-label-end {
             font-weight: bold;
-            padding: 0 2px;     /* Reduced horizontal padding for closeness */
+            padding: 0 2px;    /* Reduced horizontal padding for closeness */
         }
 
         /* Container for the 12 monthly dots */
@@ -137,6 +163,13 @@
     <button id="generateBtn">Generate</button>
 </div>
 
+<!-- Passed vs Remaining Info -->
+<div class="progress-info" id="progressInfo" style="display: none;">
+    <div id="passedText" class="progress-passed"></div>
+    <div id="progressLine" class="progress-line"></div>
+    <div id="remainingText" class="progress-remaining"></div>
+</div>
+
 <div class="years-container" id="yearsContainer">
     <!-- Dynamically generated year rows will go here -->
 </div>
@@ -151,6 +184,12 @@
     const generateBtn = document.getElementById('generateBtn');
     const yearsContainer = document.getElementById('yearsContainer');
 
+    // Elements for the "passed vs. remaining" bar and text
+    const progressInfo = document.getElementById('progressInfo');
+    const passedText   = document.getElementById('passedText');
+    const progressLine = document.getElementById('progressLine');
+    const remainingText = document.getElementById('remainingText');
+
     // Utility: Update the URL query param without reloading
     function updateQueryParameter(key, value) {
         const url = new URL(window.location);
@@ -162,25 +201,72 @@
         window.history.replaceState({}, '', url.toString());
     }
 
+    // Get the difference in full years/months between two dates (d1 <= d2).
+    // Returns { years, months }
+    function getYearMonthDiff(d1, d2) {
+        // If d2 is earlier than d1, return {0,0}
+        if (d2 < d1) return { years: 0, months: 0 };
+
+        const y1 = d1.getFullYear();
+        const m1 = d1.getMonth(); // 0-11
+        const y2 = d2.getFullYear();
+        const m2 = d2.getMonth();
+        const totalMonths1 = y1 * 12 + m1;
+        const totalMonths2 = y2 * 12 + m2;
+        const diff = totalMonths2 - totalMonths1;
+        const years = Math.floor(diff / 12);
+        const months = diff % 12;
+        return { years, months };
+    }
+
     // Generate the lifespan grid
     function generateGrid(birthDateValue) {
-        // Clear any old results
-        yearsContainer.innerHTML = '';
+        yearsContainer.innerHTML = ''; // Clear any old results
+        progressInfo.style.display = 'none'; // Hide passed/remaining info initially
 
         if (!birthDateValue) {
             return;
         }
 
+        // Convert string to Date
         const birthDate = new Date(birthDateValue);
         const birthYear = birthDate.getFullYear();
 
-        // Calculate the end year by adding 85 years to the birth year
-        const END_YEAR = birthYear + 85;
+        // "End date" is 85 years from the birth date
+        const endDate = new Date(birthDateValue);
+        endDate.setFullYear(endDate.getFullYear() + 85);
 
+        // 1) Compute how many years/months have passed
+        const passDiff = getYearMonthDiff(birthDate, now);
+        // 2) Compute how many years/months remain
+        const remainDiff = getYearMonthDiff(now, endDate);
+
+        // Show the "passed / remaining" info
+        // Example text: "40y 2m passed" and "45y 10m remaining"
+        passedText.textContent   = `${passDiff.years}y ${passDiff.months}m passed`;
+        remainingText.textContent = `${remainDiff.years}y ${remainDiff.months}m remaining`;
+        progressInfo.style.display = 'flex';
+
+        // Set up the line gradient for passed vs. remaining
+        const passedMonths = passDiff.years * 12 + passDiff.months;
+        const remainingMonths = remainDiff.years * 12 + remainDiff.months;
+        const totalMonths = passedMonths + remainingMonths;
+
+        // If totalMonths is 0, just show a solid color. Otherwise show gradient.
+        if (totalMonths > 0) {
+            const passedPercent = (passedMonths / totalMonths) * 100;
+            progressLine.style.background = `linear-gradient(to right, #333 0% ${passedPercent}%, #00aeff ${passedPercent}% 100%)`;
+        } else {
+            // Edge case: if totalMonths = 0 (e.g., user picks a future birthdate)
+            progressLine.style.background = '#333';
+        }
+
+        // Build the grid of years
+        const END_YEAR = birthYear + 85;
         for (let year = birthYear; year <= END_YEAR; year++) {
-            // Create row container
             const row = document.createElement('div');
             row.classList.add('year-row');
+
             // If this is the current year, mark it for scrolling
             if (year === currentYear) {
                 row.classList.add('current-year');
@@ -195,9 +281,6 @@
             const monthDotsContainer = document.createElement('div');
             monthDotsContainer.classList.add('month-dots');
 
-            // - If year < currentYear => all 12 dots are dim
-            // - If year === currentYear => month-by-month check
-            // - If year > currentYear => all 12 dots glow
             const isPastYear = (year < currentYear);
             const isCurrentYear = (year === currentYear);
 
@@ -208,11 +291,10 @@
                 if (isPastYear) {
                     dot.classList.add('dim');
                 } else if (isCurrentYear) {
+                    // Month-by-month check
                     if (m < currentMonth) {
-                        // Past months in current year
                         dot.classList.add('dim');
                     } else {
-                        // Current/future months in current year
                         dot.classList.add('glow');
                     }
                 } else {
