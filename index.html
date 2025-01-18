@@ -150,8 +150,6 @@
 </div>
 
 <script>
-    // End year for the lifespan (change as needed)
-    const END_YEAR = 2075;
     // Today's date
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -174,6 +172,9 @@
 
         const birthDate = new Date(birthDateValue);
         const birthYear = birthDate.getFullYear();
+
+        // Calculate the end year by adding 85 years to the birth year
+        const END_YEAR = birthYear + 85;
 
         // Generate from birthYear to END_YEAR
         for (let year = birthYear; year <= END_YEAR; year++) {
